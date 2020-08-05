@@ -10,6 +10,7 @@ extension SeekWhence {
 	}
 }
 
+/// The error returned from a unix C function
 public struct UnixError: LocalizedError {
 	public var code: Int32
 
@@ -36,17 +37,25 @@ public struct UnixError: LocalizedError {
 	}
 }
 
+/// A BinaryReader for reading files
+/// Does not buffer
+/// Use a BufferedReader if you want buffering
 public class FileReader: BinaryReader {
 	public private(set) var fd: Int32
 
+	/// Takes ownership of the given file descripter, closing it on release
 	public init(takingOwnershipOfFD fd: Int32) {
 		self.fd = fd
 	}
 
+	/// Open the given path for reading
 	public init(path: String) throws {
 		fd = try UnixError.negativeIsError(open(path, O_RDONLY))
 	}
 
+	/// Removes the file descriptor from the FileReader, returning it
+	/// The FileReader will not close the fd after this
+	/// Any further actions on the FileReader will fail
 	public func stealFD() -> Int32 {
 		defer { fd = -1 }
 		return fd

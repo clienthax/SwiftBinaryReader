@@ -1,3 +1,4 @@
+/// A struct that allows an Array to be used as a BinaryReader
 struct ArrayReader: BinaryReader {
 	var index: Int
 	var array: [UInt8]

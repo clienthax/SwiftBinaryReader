@@ -1,3 +1,4 @@
+/// A BinaryReader that buffers another BinaryReader to reduce the number of read calls that get sent to it
 public struct BufferedReader<Base: BinaryReader>: BinaryReader {
 	@usableFromInline var base: Base
 	@usableFromInline var bufferOffset: Int
@@ -91,6 +92,9 @@ public struct BufferedReader<Base: BinaryReader>: BinaryReader {
 		return bufferOffset + currentIndex
 	}
 
+	/// Reads until it hits the end or the given byte is found
+	/// - returns: The read data, including the termination byte
+	/// - note: For optimal performance, do not use the BufferedReader again before the returned ArraySlice is dropped.  If you need to store it long term, use `Array(reader.readUntil(x))`
 	public mutating func readUntil(_ byte: UInt8) throws -> ArraySlice<UInt8> {
 		var out = ArraySlice<UInt8>()
 		while true {
@@ -112,10 +116,13 @@ public struct BufferedReader<Base: BinaryReader>: BinaryReader {
 		return out
 	}
 
+	/// Reads until the given byte is hit, then decodes the result as a UTF-8 string (termination byte included)
 	public mutating func readStringUntil(_ byte: UInt8) throws -> String {
 		return String(decoding: try readUntil(byte), as: UTF8.self)
 	}
 
+	/// Create a BufferedReader from the given base array
+	/// - parameter bufferSize: The size of buffer to use (larger buffers use more memory but less calls to the base reader's read function)
 	@inlinable public init(_ base: Base, bufferSize: Int = 4096) throws {
 		self.base = base
 		self.bufferSize = bufferSize
