@@ -26,7 +26,7 @@ public protocol BinaryReader {
 extension BinaryReader {
 	/// Seek to the given offset from the beginning of the stream
 	@inlinable public mutating func seek(to location: Int) throws { try seek(offset: location, whence: .beginning) }
-	/// Read the given type from the stream
+	/// Read the given type from the stream in host endianness
 	/// - returns: nil if there wasn't enough data in the stream, otherwise the read value
 	@inlinable public mutating func readRaw<Output: BinaryLoadable>(_ type: Output.Type = Output.self) throws -> Output? {
 		var output = Output()
@@ -34,6 +34,11 @@ extension BinaryReader {
 			return try read(into: ptr) == ptr.count
 		}
 		return ok ? output : nil
+	}
+	/// Read the given type, converting it from the disk endianness to machine native
+	/// - returns: nil if there wasn't enough data in the stream, otherwise the read value
+	@inlinable public mutating func read<Output: SingleEndian>(_ type: Output.Type = Output.self) throws -> Output? {
+		return try readRaw().map { Output(diskEndian: $0) }
 	}
 	/// Read the given type, converting it from the stream's little endian format to machine native
 	/// - returns: nil if there wasn't enough data in the stream, otherwise the read value
@@ -45,10 +50,15 @@ extension BinaryReader {
 	@inlinable public mutating func readBE<Output: EndianConvertible>(_ type: Output.Type = Output.self) throws -> Output? {
 		return try readRaw().map { Output(bigEndian: $0) }
 	}
-	/// Read the given type from the stream
+	/// Read the given type from the stream in host endianness
 	/// - throws: an `EndOfStreamError` if the stream ends, in addition to other read errors
 	@inlinable public mutating func forceReadRaw<Output: BinaryLoadable>(_ type: Output.Type = Output.self) throws -> Output {
 		return try readRaw().unwrapOrThrow(EndOfStreamError())
+	}
+	/// Read the given type, converting it from the disk endianness to machine native
+	/// - throws: an `EndOfStreamError` if the stream ends, in addition to other read errors
+	@inlinable public mutating func forceRead<Output: SingleEndian>(_ type: Output.Type = Output.self) throws -> Output {
+		return try read().unwrapOrThrow(EndOfStreamError())
 	}
 	/// Read the given type, converting it from the stream's little endian format to machine native
 	/// - throws: an `EndOfStreamError` if the stream ends, in addition to other read errors

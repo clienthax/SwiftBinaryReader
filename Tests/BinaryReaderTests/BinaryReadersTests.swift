@@ -4,7 +4,7 @@ import XCTest
 final class BinaryReaderTests: XCTestCase {
 	func testArrayReader() {
 		var reader = ArrayReader([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
-		XCTAssertEqual(try reader.readLE(UInt8.self), 0)
+		XCTAssertEqual(try reader.read(UInt8.self), 0)
 		XCTAssertEqual(try reader.readBE(UInt16.self), 0x0102)
 		XCTAssertEqual(try reader.readLE(UInt32.self), 0x06050403)
 		XCTAssertEqual(try reader.readAtMostBytes(32), [7, 8, 9, 10, 11, 12, 13, 14, 15])
@@ -23,9 +23,9 @@ final class BinaryReaderTests: XCTestCase {
 		XCTAssertNoThrow(reader = try BufferedReader(ArrayReader(base)))
 		XCTAssertEqual(try reader.readLE(UInt32.self), 0x03020100)
 		XCTAssertNoThrow(try reader.seek(offset: -4, whence: .end))
-		XCTAssertEqual(try reader.readLE(UInt8.self), 252)
+		XCTAssertEqual(try reader.read(), 252 as UInt8)
 		XCTAssertNoThrow(try reader.seek(offset: -1, whence: .current))
-		XCTAssertEqual(try reader.readLE(UInt8.self), 252)
+		XCTAssertEqual(try reader.read(), 252 as UInt8)
 		XCTAssertNoThrow(try reader.seek(offset: -4, whence: .current))
 		XCTAssertEqual(try reader.readAtMostBytes(64), [249, 250, 251, 252, 253, 254, 255])
 		XCTAssertNoThrow(try reader.seek(offset: 8, whence: .beginning))
