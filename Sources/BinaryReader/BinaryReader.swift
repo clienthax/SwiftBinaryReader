@@ -85,7 +85,7 @@ extension BinaryReader {
 	}
 	/// Reads the requested number of bytes from the stream
 	/// - throws: an `EndOfStreamError` if the stream ends
-	@inlinable public mutating func forceReadBytes(_ n: Int) throws -> [UInt8]? {
+	@inlinable public mutating func forceReadBytes(_ n: Int) throws -> [UInt8] {
 		return try readBytes(n).unwrapOrThrow(EndOfStreamError())
 	}
 }
