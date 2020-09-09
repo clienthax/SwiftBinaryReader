@@ -43,6 +43,8 @@ public struct UnixError: LocalizedError {
 public class FileReader: BinaryReader {
 	public private(set) var fd: Int32
 
+	@inlinable public var canSeekBackwards: Bool { true }
+
 	/// Takes ownership of the given file descripter, closing it on release
 	public init(takingOwnershipOfFD fd: Int32) {
 		self.fd = fd

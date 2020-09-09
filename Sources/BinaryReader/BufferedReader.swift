@@ -6,6 +6,8 @@ public struct BufferedReader<Base: BinaryReader>: BinaryReader {
 	@usableFromInline let bufferSize: Int
 	@usableFromInline var buffer: [UInt8]
 
+	@inlinable public var canSeekBackwards: Bool { base.canSeekBackwards }
+
 	@inlinable var remaining: ArraySlice<UInt8> { buffer[currentIndex...] }
 
 	@discardableResult mutating func refill() throws -> Int {

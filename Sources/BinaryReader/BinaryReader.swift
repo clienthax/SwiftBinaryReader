@@ -21,6 +21,13 @@ public protocol BinaryReader {
 	@discardableResult mutating func seek(offset: Int, whence: SeekWhence) throws -> Int
 	/// - returns: The current byte offset into the stream
 	func tell() throws -> Int
+	/// Whether the reader can seek backwards
+	var canSeekBackwards: Bool { get }
+}
+
+extension BinaryReader {
+	// Default implementation
+	@inlinable public var canSeekBackwards: Bool { return false }
 }
 
 extension BinaryReader {
@@ -87,5 +94,30 @@ extension BinaryReader {
 	/// - throws: an `EndOfStreamError` if the stream ends
 	@inlinable public mutating func forceReadBytes(_ n: Int) throws -> [UInt8] {
 		return try readBytes(n).unwrapOrThrow(EndOfStreamError())
+	}
+	/// Reads to the end of the stream
+	@inlinable public mutating func readAll() throws -> [UInt8] {
+		if canSeekBackwards {
+			let cur = try tell()
+			try seek(offset: 0, whence: .end)
+			let len = try tell()
+			try seek(offset: cur, whence: .beginning)
+			return try readAtMostBytes(len - cur)
+		}
+		var readLen = 4096
+		var out = try readAtMostBytes(readLen)
+		if out.count < readLen { return out }
+		var buffers: [[UInt8]] = []
+		while true {
+			readLen *= 2
+			let next = try readAtMostBytes(readLen)
+			buffers.append(next)
+			if next.count < readLen { break }
+		}
+		out.reserveCapacity(out.count + buffers.reduce(0, { $0 + $1.count }))
+		for buffer in buffers {
+			out.append(contentsOf: buffer)
+		}
+		return out
 	}
 }

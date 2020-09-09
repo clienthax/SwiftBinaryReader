@@ -15,6 +15,8 @@ final class BinaryReaderTests: XCTestCase {
 		XCTAssertEqual(try reader.forceReadBE(UInt32.self), 0x0a0b0c0d)
 		XCTAssertNoThrow(try reader.seek(offset: -6, whence: .current))
 		XCTAssertEqual(try reader.forceReadLE(UInt16.self), 0x0908)
+		XCTAssertEqual(try reader.readAll(), [10, 11, 12, 13, 14, 15])
+		XCTAssertEqual(try reader.readAtMostBytes(4), [])
 	}
 
 	func testBufferedReader() {

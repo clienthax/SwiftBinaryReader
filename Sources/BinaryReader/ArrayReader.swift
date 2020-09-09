@@ -1,8 +1,10 @@
 /// A struct that allows an Array to be used as a BinaryReader
-struct ArrayReader: BinaryReader {
-	var index: Int
-	var array: [UInt8]
-	var remaining: ArraySlice<UInt8> { array[index...] }
+public struct ArrayReader: BinaryReader {
+	@usableFromInline var index: Int
+	@usableFromInline var array: [UInt8]
+	@inlinable var remaining: ArraySlice<UInt8> { array[index...] }
+
+	@inlinable public var canSeekBackwards: Bool { true }
 
 	@inlinable public mutating func read(into target: UnsafeMutableRawBufferPointer) throws -> Int {
 		if target.count >= remaining.count {
