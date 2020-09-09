@@ -44,7 +44,7 @@ public struct ArrayReader: BinaryReader {
 		return remaining
 	}
 
-	init(_ array: [UInt8]) {
+	@inlinable public init(_ array: [UInt8]) {
 		self.array = array
 		self.index = 0
 	}
