@@ -118,11 +118,6 @@ public struct BufferedReader<Base: BinaryReader>: BinaryReader {
 		return out
 	}
 
-	/// Reads until the given byte is hit, then decodes the result as a UTF-8 string (termination byte included)
-	public mutating func readStringUntil(_ byte: UInt8) throws -> String {
-		return String(decoding: try readUntil(byte), as: UTF8.self)
-	}
-
 	/// Create a BufferedReader from the given base array
 	/// - parameter bufferSize: The size of buffer to use (larger buffers use more memory but less calls to the base reader's read function)
 	@inlinable public init(_ base: Base, bufferSize: Int = 4096) throws {

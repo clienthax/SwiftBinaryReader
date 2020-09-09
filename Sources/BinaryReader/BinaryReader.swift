@@ -23,11 +23,23 @@ public protocol BinaryReader {
 	func tell() throws -> Int
 	/// Whether the reader can seek backwards
 	var canSeekBackwards: Bool { get }
+	/// Read until a specific byte is found
+	mutating func readUntil(_ byte: UInt8) throws -> ArraySlice<UInt8>
 }
 
 extension BinaryReader {
-	// Default implementation
+	// Default implementations
 	@inlinable public var canSeekBackwards: Bool { return false }
+
+	@inlinable public mutating func readUntil(_ byte: UInt8) throws -> ArraySlice<UInt8> {
+		var out = [UInt8]()
+		while true {
+			guard let next: UInt8 = try read() else { break }
+			out.append(next)
+			if next == byte { break }
+		}
+		return out[...]
+	}
 }
 
 extension BinaryReader {
@@ -119,5 +131,20 @@ extension BinaryReader {
 			out.append(contentsOf: buffer)
 		}
 		return out
+	}
+
+	/// Reads until the given byte is hit, then decodes the result as a UTF-8 string
+	@inlinable public mutating func readStringUntil(_ byte: UInt8, includingTerminator: Bool = true) throws -> String {
+		let read = try readUntil(byte)
+		if includingTerminator || read.last != byte {
+			return String(decoding: read, as: UTF8.self)
+		} else {
+			return String(decoding: read.dropLast(), as: UTF8.self)
+		}
+	}
+
+	/// Reads a null terminated string
+	@inlinable public mutating func readNullTerminatedString() throws -> String {
+		return try readStringUntil(0, includingTerminator: false)
 	}
 }

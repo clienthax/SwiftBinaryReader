@@ -35,6 +35,15 @@ public struct ArrayReader: BinaryReader {
 		return index
 	}
 
+	@inlinable public mutating func readUntil(_ byte: UInt8) -> ArraySlice<UInt8> {
+		if let i = remaining.firstIndex(of: byte) {
+			defer { index = i + 1 }
+			return remaining[...i]
+		}
+		defer { index = array.count }
+		return remaining
+	}
+
 	init(_ array: [UInt8]) {
 		self.array = array
 		self.index = 0
