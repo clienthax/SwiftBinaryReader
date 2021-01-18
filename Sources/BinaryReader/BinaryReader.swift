@@ -69,6 +69,12 @@ extension BinaryReader {
 	@inlinable public mutating func readBE<Output: EndianConvertible>(_ type: Output.Type = Output.self) throws -> Output? {
 		return try readRaw().map { Output(bigEndian: $0) }
 	}
+	/// Read into the given buffer, throwing if an error occurs or if the end of stream is hit
+	@inlinable public mutating func forceRead(into target: UnsafeMutableRawBufferPointer) throws {
+		guard try read(into: target) == target.count else {
+			throw EndOfStreamError()
+		}
+	}
 	/// Read the given type from the stream in host endianness
 	/// - throws: an `EndOfStreamError` if the stream ends, in addition to other read errors
 	@inlinable public mutating func forceReadRaw<Output: BinaryLoadable>(_ type: Output.Type = Output.self) throws -> Output {
