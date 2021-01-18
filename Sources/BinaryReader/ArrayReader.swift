@@ -51,7 +51,7 @@ public struct ArrayReader: BinaryReader {
 }
 
 extension ArrayReader: BinaryWriter {
-	@inlinable var currentArray: [UInt8] { return array }
+	@inlinable public var currentArray: [UInt8] { return array }
 
 	@inlinable public mutating func write(from buffer: UnsafeRawBufferPointer) {
 		let space = array.count - index
