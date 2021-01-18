@@ -19,6 +19,19 @@ final class BinaryReaderTests: XCTestCase {
 		XCTAssertEqual(try reader.readAtMostBytes(4), [])
 	}
 
+	func testArrayWriter() {
+		var writer = ArrayReader()
+		try! writer.write(3 as UInt8)
+		XCTAssertEqual(writer.currentArray, [3])
+		try! writer.writeLE(3 as UInt32)
+		XCTAssertEqual(writer.currentArray, [3, 3, 0, 0, 0])
+		try! writer.write([0, 1, 2, 3])
+		XCTAssertEqual(writer.currentArray, [3, 3, 0, 0, 0, 0, 1, 2, 3])
+		try! writer.seek(to: 3)
+		try! writer.writeBE(4 as UInt32)
+		XCTAssertEqual(writer.currentArray, [3, 3, 0, 0, 0, 0, 4, 2, 3])
+	}
+
 	func testBufferedReader() {
 		var reader: BufferedReader<ArrayReader>!
 		let base = (0..<65536).map { UInt8(truncatingIfNeeded: $0) }

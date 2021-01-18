@@ -10,18 +10,21 @@ public enum SeekWhence {
 	case end
 }
 
-public protocol BinaryReader {
+public protocol Seekable {
+	/// Seek to the given location, clamped to the beginning/end of the stream
+	/// - returns: The offset into the file after seeking
+	/// - note: Some streams may not support seeking or may only support seeking forwards
+	@discardableResult mutating func seek(offset: Int, whence: SeekWhence) throws -> Int
+}
+
+public protocol BinaryReader: Seekable {
 	/// Read up to `target.count` bytes into `target`
 	/// - returns: The actual number of bytes read.  A number less than `target.count` (including 0) indicates the end of the stream was hit
 	/// - throws: If an error other than hitting the end of the stream occurs
 	mutating func read(into target: UnsafeMutableRawBufferPointer) throws -> Int
-	/// Seek to the given location, clamped to the beginning/end of the stream
-	/// - returns: The offset into the file after seeking
-	/// - note: Some streams may not support seeking backwards.  They will throw an error in this case
-	@discardableResult mutating func seek(offset: Int, whence: SeekWhence) throws -> Int
 	/// - returns: The current byte offset into the stream
 	func tell() throws -> Int
-	/// Whether the reader can seek backwards
+	/// Whether the reader can seek backwards (all readers can seek forwards)
 	var canSeekBackwards: Bool { get }
 	/// Read until a specific byte is found
 	mutating func readUntil(_ byte: UInt8) throws -> ArraySlice<UInt8>
@@ -42,9 +45,12 @@ extension BinaryReader {
 	}
 }
 
-extension BinaryReader {
+extension Seekable {
 	/// Seek to the given offset from the beginning of the stream
 	@inlinable public mutating func seek(to location: Int) throws { try seek(offset: location, whence: .beginning) }
+}
+
+extension BinaryReader {
 	/// Read the given type from the stream in host endianness
 	/// - returns: nil if there wasn't enough data in the stream, otherwise the read value
 	@inlinable public mutating func readRaw<Output: BinaryLoadable>(_ type: Output.Type = Output.self) throws -> Output? {

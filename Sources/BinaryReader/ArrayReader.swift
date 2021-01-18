@@ -49,3 +49,36 @@ public struct ArrayReader: BinaryReader {
 		self.index = 0
 	}
 }
+
+extension ArrayReader: BinaryWriter {
+	@inlinable var currentArray: [UInt8] { return array }
+
+	@inlinable public mutating func write(from buffer: UnsafeRawBufferPointer) {
+		let space = array.count - index
+		if buffer.count <= space {
+			array.withUnsafeMutableBytes { ptr in
+				let target = UnsafeMutableRawBufferPointer(rebasing: ptr[index ..< index+buffer.count])
+				buffer.copyBytes(to: target)
+			}
+			index += buffer.count
+		} else if space > 0 {
+			write(from: .init(rebasing: buffer[..<space]))
+			write(from: .init(rebasing: buffer[space...]))
+		} else {
+			array.append(contentsOf: buffer)
+			index = array.count
+		}
+	}
+
+	@inlinable public var canSeek: Bool { return true }
+
+	@inlinable public mutating func flush() {}
+
+	@inlinable public mutating func truncate() {
+		if index != array.count {
+			array.removeSubrange(index...)
+		}
+	}
+
+	@inlinable public init() { self.init([]) }
+}
