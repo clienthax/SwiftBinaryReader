@@ -28,12 +28,8 @@ public struct UnixError: LocalizedError {
 
 	public var errorDescription: String? {
 		let ptr = UnsafeMutablePointer<CChar>.allocate(capacity: 64)
-		defer { ptr.deallocate() }
-		if strerror_r(code, ptr, 64) == 0 {
-			return String(cString: ptr)
-		} else {
-			return "Unknown unix error (code \(code))"
-		}
+		defer { ptr.deallocate() }		
+		return "Unknown unix error (code \(code))"
 	}
 }
 
@@ -73,14 +69,15 @@ public class FileReader: BinaryReader {
 		var total = 0
 		var target = target
 		while !target.isEmpty {
-			let amt = Foundation.read(fd, target.baseAddress, target.count)
+			let amt = Foundation.read(fd, target.baseAddress, UInt32(target.count))
 			guard amt > 0 else {
 				if amt == 0 { break }
 				if errno == EINTR { continue }
 				throw UnixError()
 			}
-			total += amt
-			target = .init(rebasing: target[amt...])
+			total += Int(amt)
+			// target = .init(rebasing: target[amt...])
+			target = UnsafeMutableRawBufferPointer(rebasing: target.dropFirst(Int(amt)))
 		}
 		return total
 	}
